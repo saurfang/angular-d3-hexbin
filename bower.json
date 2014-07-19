@@ -1,0 +1,28 @@
+{
+  "name": "angular-d3-hexbin",
+  "version": "0.0.0",
+  "authors": [
+    "Saurfang <forest.fang@outlook.com>"
+  ],
+  "description": "Angular hexbin plot directive using d3",
+  "main": "d3-hexbin.js",
+  "keywords": [
+    "hexbin",
+    "d3",
+    "angular"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/saurfang/angular-d3-hexbin",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "d3": "~3.4.11",
+    "d3-plugins": "*",
+    "angular": "~1.2.20"
+  }
+}
