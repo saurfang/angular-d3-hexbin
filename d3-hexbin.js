@@ -10,6 +10,7 @@ angular.module('angular-d3-hexbin', []).
                 radius: '=?',
                 axisLabels: '=?',
                 zoom: '=?',
+                strokeWidth: '=?',
                 color: '=?',
                 tip: '=?',
                 ctrl: '=?'
@@ -19,6 +20,7 @@ angular.module('angular-d3-hexbin', []).
                 $scope.y = $scope.y || function (d) { return d[1]; };
                 $scope.radius = Math.abs($scope.radius) || 10;
                 $scope.zoom = angular.isDefined($scope.zoom) ? $scope.zoom : true;
+                $scope.strokeWidth = angular.isDefined($scope.strokeWidth) ? Math.abs($scope.strokeWidth) : 0;
                 $scope.color = $scope.color ||
                     d3.scale.linear()
                         .domain([0, 20])
@@ -190,7 +192,8 @@ angular.module('angular-d3-hexbin', []).
                         .attr('d', hexbin.hexagon())
                         .style('fill', function (d) {
                             return scope.color(d.total);
-                        });
+                        })
+                        .style('stroke-width', scope.strokeWidth / scale);
                 };
 
                 scope.$watch('data', function () {
