@@ -11,15 +11,12 @@ angular.module('angular-d3-hexbin', []).
                 axisLabels: '=?',
                 zoom: '=?',
                 color: '=?',
-                tip: '=?'
+                tip: '=?',
+                ctrl: '=?'
             },
             controller: function ($scope) {
-                $scope.x = $scope.x || function (d) {
-                    return d[0];
-                };
-                $scope.y = $scope.y || function (d) {
-                    return d[1];
-                };
+                $scope.x = $scope.x || function (d) { return d[0]; };
+                $scope.y = $scope.y || function (d) { return d[1]; };
                 $scope.radius = Math.abs($scope.radius) || 10;
                 $scope.zoom = angular.isDefined($scope.zoom) ? $scope.zoom : true;
                 $scope.color = $scope.color ||
@@ -31,6 +28,7 @@ angular.module('angular-d3-hexbin', []).
                     return d.length;
                 };
                 $scope.axisLabels = $scope.axisLabels || ['', ''];
+                $scope.ctrl = $scope.ctrl || {};
             },
             link: function (scope, element, attrs) {
                 var margin = {top: 10, right: 20, bottom: 60, left: 50},
@@ -63,17 +61,22 @@ angular.module('angular-d3-hexbin', []).
                     .orient('left')
                     .tickSize(6, -width);
 
-                var zoomed = function () {
-                    container.attr('transform', 'translate(' + d3.event.translate + ')scale(' + d3.event.scale + ')');
+                var zooming = function () {
+                    container.attr('transform', 'translate(' + zoom.translate() + ')scale(' + zoom.scale() + ')');
                     svg.select('.x.axis').call(xAxis);
                     svg.select('.y.axis').call(yAxis);
+                };
+
+                var zoomed = function () {
+                    scope.ctrl.redraw();
                 };
 
                 var zoom = d3.behavior.zoom()
                     .scaleExtent([1, Infinity])
                     .x(x)
                     .y(y)
-                    .on('zoom', zoomed);
+                    .on('zoom', zooming)
+                    .on('zoomend', zoomed);
 
                 var tooltip = d3.select(element[0]).append('div')
                     .attr('class', 'd3tip hidden');
@@ -85,7 +88,7 @@ angular.module('angular-d3-hexbin', []).
                     .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 
                 if (scope.zoom) {
-                    svg.call(zoom); //TODO: Avoid zoom on Axis
+                    svg.call(zoom); //TODO: Avoid zoom trigger on Axis
 
                     //Add rect so zoom can be activated in empty space
                     svg.append('rect')
@@ -125,8 +128,20 @@ angular.module('angular-d3-hexbin', []).
                     .attr('y', -40)
                     .attr('transform', 'rotate(-90)');
 
-                var redraw = function() {
+                scope.ctrl.redraw = function() {
+                    //store current zoom params
+                    var trans = zoom.translate(), scale = zoom.scale();
+                    //reset zoom levels (impact x and y)
+                    zoom.translate([0, 0]).scale(1);
+
+                    //re-compute hexbin using scaled radius
+                    hexbin = hexbin.radius(scope.radius / scale);
                     var bins = hexbin(scope.data);
+
+                    //set zoom back to previous status
+                    zoom.translate(trans).scale(scale);
+
+
                     //Readjust color domain according to density and cache total count for each bin
                     if (bins.length) {
                         var maxCount = 0;
@@ -190,14 +205,10 @@ angular.module('angular-d3-hexbin', []).
                     t.select('.x.axis').call(xAxis);
                     t.select('.y.axis').call(yAxis);
 
-                    redraw();
+                    scope.ctrl.redraw();
                 });
 
-                scope.$watch('radius', function () {
-                    hexbin = hexbin.radius(scope.radius);
-
-                    redraw();
-                });
+                scope.$watch('radius', scope.ctrl.redraw);
 
                 scope.$watch('axisLabels', function(){
                     xLab.text(scope.axisLabels[0]);
@@ -261,7 +272,7 @@ angular.module('angular-d3-hexbin', []).
                     .attr('y', height);
 
                 //TODO: $watch doesn't really work on color currently
-                scope.$watch('color', function (newVal, oldVal) {
+                scope.$watch('color', function () {
                     var upper = d3.max(scope.color.domain());
                     var stops = d3.select('#' + idGradient).selectAll('stop')
                         .data(d3.range(numberHues).map(function (i) {
@@ -283,7 +294,7 @@ angular.module('angular-d3-hexbin', []).
                         });
                 }, true);
 
-                scope.$watch('color.domain()', function (newVal, oldVal) {
+                scope.$watch('color.domain()', function () {
                     var upper = d3.max(scope.color.domain());
                     maxHue.text(upper);
                 });
