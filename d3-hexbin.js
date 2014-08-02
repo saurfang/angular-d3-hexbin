@@ -22,21 +22,20 @@ angular.module('angular-d3-hexbin', []).
                 $scope.radius = Math.abs($scope.radius) || 10;
                 $scope.canZoom = angular.isDefined($scope.canZoom) ? $scope.canZoom : true;
                 $scope.strokeWidth = angular.isDefined($scope.strokeWidth) ? Math.abs($scope.strokeWidth) : 0;
+                $scope.aspectRatio = Math.abs($scope.aspectRatio) || 1;
                 $scope.color = $scope.color ||
                     d3.scale.linear()
                         .domain([0, 20])
                         .range(['white', 'steelblue'])
                         .interpolate(d3.interpolateLab);
-                $scope.weight = $scope.weight || function (d) {
-                    return d.length;
-                };
+                $scope.weight = $scope.weight || function (d) { return d.length; };
                 $scope.axisLabels = $scope.axisLabels || ['', ''];
                 $scope.ctrl = $scope.ctrl || {};
             },
             link: function (scope, element, attrs) {
                 var margin = {top: 10, right: 20, bottom: 60, left: 50},
                     width = element.width() - margin.left - margin.right,
-                    height = element.width() - margin.top - margin.bottom;
+                    height = element.width() * scope.aspectRatio - margin.top - margin.bottom;
 
                 var hexbin = d3.hexbin()
                     .x(function (d) {
@@ -75,7 +74,6 @@ angular.module('angular-d3-hexbin', []).
                 };
 
                 var zoom = d3.behavior.zoom()
-                    .scaleExtent([1, Infinity])
                     .x(x)
                     .y(y)
                     .on('zoom', zooming)
@@ -88,23 +86,25 @@ angular.module('angular-d3-hexbin', []).
                     .attr('width', width + margin.left + margin.right)
                     .attr('height', height + margin.top + margin.bottom)
                     .append('g')
-                    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+                    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+                //Create separate g to avoid zoom trigger on axis
+                var zoomPane = svg.append('g');
                 if (scope.canZoom) {
-                    svg.call(zoom); //TODO: Avoid zoom trigger on Axis (#4)
-
-                    //Add rect so zoom can be activated in empty space
-                    svg.append('rect')
-                        .attr('class', 'pane')
-                        .attr('width', width)
-                        .attr('height', height);
+                    zoomPane.call(zoom);
                 }
 
                 //Use svg to clip to support pan without redraw
-                var container = svg.append('svg')
+                var container = zoomPane.append('svg')
                     .attr('width', width)
                     .attr('height', height)
                     .append('g');
+
+                //Add rect so zoom can be activated in empty space
+                var pane = container.append('rect')
+                    .attr('class', 'pane')
+                    .attr('width', width)
+                    .attr('height', height);
 
                 var hexagon = container
                     .selectAll('.hexagon');
@@ -221,6 +221,7 @@ angular.module('angular-d3-hexbin', []).
                     yLab.text(scope.axisLabels[1]);
                 });
 
+                /*
                 scope.$watch(
                     function () {
                         return [element[0].clientWidth, element[0].clientHeight];
@@ -228,7 +229,7 @@ angular.module('angular-d3-hexbin', []).
                     function (value) {
                         console.log('directive got resized:', value.split('x'));
                     }
-                )
+                )*/
             }
         };
     }).
