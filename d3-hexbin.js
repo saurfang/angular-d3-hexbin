@@ -6,7 +6,7 @@ angular.module('angular-d3-hexbin', []).
                 data: '=',
                 x: '=?',
                 y: '=?',
-                count: '=?',
+                weight: '=?',
                 radius: '=?',
                 axisLabels: '=?',
                 zoom: '=?',
@@ -26,7 +26,7 @@ angular.module('angular-d3-hexbin', []).
                         .domain([0, 20])
                         .range(['white', 'steelblue'])
                         .interpolate(d3.interpolateLab);
-                $scope.count = $scope.count || function (d) {
+                $scope.weight = $scope.weight || function (d) {
                     return d.length;
                 };
                 $scope.axisLabels = $scope.axisLabels || ['', ''];
@@ -144,17 +144,17 @@ angular.module('angular-d3-hexbin', []).
                     zoom.translate(trans).scale(scale);
 
 
-                    //Readjust color domain according to density and cache total count for each bin
+                    //Readjust color domain according to density and cache total weight for each bin
                     if (bins.length) {
-                        var maxCount = 0;
+                        var maxWeight = 0;
                         bins.forEach(function (d) {
-                            var count = scope.count(d);
-                            if (count > maxCount) {
-                                maxCount = count;
+                            var weight = scope.weight(d);
+                            if (weight > maxWeight) {
+                                maxWeight = weight;
                             }
-                            d.total = count;
+                            d.total = weight;
                         });
-                        scope.color = scope.color.domain([0, maxCount]);
+                        scope.color = scope.color.domain([0, maxWeight]);
                     }
 
                     hexagon = hexagon.data(bins, function (d) {
@@ -217,6 +217,15 @@ angular.module('angular-d3-hexbin', []).
                     xLab.text(scope.axisLabels[0]);
                     yLab.text(scope.axisLabels[1]);
                 });
+
+                scope.$watch(
+                    function () {
+                        return [element[0].clientWidth, element[0].clientHeight];
+                    },
+                    function (value) {
+                        console.log('directive got resized:', value.split('x'));
+                    }
+                )
             }
         };
     }).
