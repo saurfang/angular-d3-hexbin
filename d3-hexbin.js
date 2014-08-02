@@ -9,8 +9,9 @@ angular.module('angular-d3-hexbin', []).
                 weight: '=?',
                 radius: '=?',
                 axisLabels: '=?',
-                zoom: '=?',
+                canZoom: '=?',
                 strokeWidth: '=?',
+                aspectRatio: '=?',
                 color: '=?',
                 tip: '=?',
                 ctrl: '=?'
@@ -19,7 +20,7 @@ angular.module('angular-d3-hexbin', []).
                 $scope.x = $scope.x || function (d) { return d[0]; };
                 $scope.y = $scope.y || function (d) { return d[1]; };
                 $scope.radius = Math.abs($scope.radius) || 10;
-                $scope.zoom = angular.isDefined($scope.zoom) ? $scope.zoom : true;
+                $scope.canZoom = angular.isDefined($scope.canZoom) ? $scope.canZoom : true;
                 $scope.strokeWidth = angular.isDefined($scope.strokeWidth) ? Math.abs($scope.strokeWidth) : 0;
                 $scope.color = $scope.color ||
                     d3.scale.linear()
@@ -89,8 +90,8 @@ angular.module('angular-d3-hexbin', []).
                     .append('g')
                     .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 
-                if (scope.zoom) {
-                    svg.call(zoom); //TODO: Avoid zoom trigger on Axis
+                if (scope.canZoom) {
+                    svg.call(zoom); //TODO: Avoid zoom trigger on Axis (#4)
 
                     //Add rect so zoom can be activated in empty space
                     svg.append('rect')
@@ -131,6 +132,7 @@ angular.module('angular-d3-hexbin', []).
                     .attr('transform', 'rotate(-90)');
 
                 scope.ctrl.redraw = function() {
+                    //TODO: Efficient zoom (#2)
                     //store current zoom params
                     var trans = zoom.translate(), scale = zoom.scale();
                     //reset zoom levels (impact x and y)
@@ -145,6 +147,7 @@ angular.module('angular-d3-hexbin', []).
 
 
                     //Readjust color domain according to density and cache total weight for each bin
+                    //TODO: Should we also adjust domain when zoomed? Would it provides more insights or just be inconsistent?
                     if (bins.length) {
                         var maxWeight = 0;
                         bins.forEach(function (d) {
