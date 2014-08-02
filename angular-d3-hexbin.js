@@ -33,6 +33,8 @@ angular.module('angular-d3-hexbin', []).
                 $scope.ctrl = $scope.ctrl || {};
             },
             link: function (scope, element, attrs) {
+                element.addClass('ngD3Hexbin');
+
                 var margin = {top: 10, right: 20, bottom: 60, left: 50},
                     width = element.width() - margin.left - margin.right,
                     height = element.width() / scope.aspectRatio - margin.top - margin.bottom;
