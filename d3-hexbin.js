@@ -35,7 +35,7 @@ angular.module('angular-d3-hexbin', []).
             link: function (scope, element, attrs) {
                 var margin = {top: 10, right: 20, bottom: 60, left: 50},
                     width = element.width() - margin.left - margin.right,
-                    height = element.width() * scope.aspectRatio - margin.top - margin.bottom;
+                    height = element.width() / scope.aspectRatio - margin.top - margin.bottom;
 
                 var hexbin = d3.hexbin()
                     .x(function (d) {
@@ -83,8 +83,7 @@ angular.module('angular-d3-hexbin', []).
                     .attr('class', 'd3tip hidden');
 
                 var svg = d3.select(element[0]).append('svg')
-                    .attr('width', width + margin.left + margin.right)
-                    .attr('height', height + margin.top + margin.bottom)
+                    .attr('viewBox', "0 0 " + element.width() + " " + element.width() / scope.aspectRatio)
                     .append('g')
                     .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -221,15 +220,14 @@ angular.module('angular-d3-hexbin', []).
                     yLab.text(scope.axisLabels[1]);
                 });
 
-                /*
-                scope.$watch(
-                    function () {
-                        return [element[0].clientWidth, element[0].clientHeight];
-                    },
-                    function (value) {
-                        console.log('directive got resized:', value.split('x'));
-                    }
-                )*/
+                scope.ctrl.resize = function(){
+                    svg.attr("width", element.width());
+                    svg.attr("height", element.width() / scope.aspectRatio);
+                };
+
+                scope.$watch('aspectRatio', scope.ctrl.resize );
+
+                element.bind('resize', scope.ctrl.resize);
             }
         };
     }).
