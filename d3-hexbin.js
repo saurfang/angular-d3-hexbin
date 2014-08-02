@@ -1,5 +1,5 @@
 angular.module('angular-d3-hexbin', []).
-    directive('ngHexbin', function () {
+    directive('ngD3Hexbin', function () {
         return {
             restrict: 'E',
             scope: {
@@ -234,7 +234,7 @@ angular.module('angular-d3-hexbin', []).
 
     // Making a Heat Map Legend with D3
     // Source: http://bl.ocks.org/nowherenearithaca/4449376
-    directive('ngHexbinLegend', function () {
+    directive('ngD3Legend', function () {
         var margin = {top: 5, right: 20, bottom: 15, left: 5},
             height = 35, numberHues = 100;
 
