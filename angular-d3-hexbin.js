@@ -1,5 +1,5 @@
 angular.module('angular-d3-hexbin', []).
-    directive('ngD3Hexbin', function () {
+    directive('ngD3Hexbin', function ($window) {
         return {
             restrict: 'E',
             scope: {
@@ -17,9 +17,13 @@ angular.module('angular-d3-hexbin', []).
                 ctrl: '=?'
             },
             controller: function ($scope) {
-                $scope.x = $scope.x || function (d) { return d[0]; };
-                $scope.y = $scope.y || function (d) { return d[1]; };
-                $scope.radius = Math.abs($scope.radius) || 10;
+                $scope.x = $scope.x || function (d) {
+                    return d[0];
+                };
+                $scope.y = $scope.y || function (d) {
+                    return d[1];
+                };
+                $scope.radius = Math.abs($scope.radius) || 3;
                 $scope.canZoom = angular.isDefined($scope.canZoom) ? $scope.canZoom : true;
                 $scope.strokeWidth = angular.isDefined($scope.strokeWidth) ? Math.abs($scope.strokeWidth) : 0;
                 $scope.aspectRatio = Math.abs($scope.aspectRatio) || 1;
@@ -28,7 +32,9 @@ angular.module('angular-d3-hexbin', []).
                         .domain([0, 20])
                         .range(['white', 'steelblue'])
                         .interpolate(d3.interpolateLab);
-                $scope.weight = $scope.weight || function (d) { return d.length; };
+                $scope.weight = $scope.weight || function (d) {
+                    return d.length;
+                };
                 $scope.axisLabels = $scope.axisLabels || ['', ''];
                 $scope.ctrl = $scope.ctrl || {};
             },
@@ -48,7 +54,7 @@ angular.module('angular-d3-hexbin', []).
                         return y(scope.y(d));
                     })
                     .size([width, height])
-                    .radius(scope.radius);
+                    .radius(scope.radius / 100 * width);
 
                 var x = d3.scale.linear()
                     .range([0, width]);
@@ -81,6 +87,7 @@ angular.module('angular-d3-hexbin', []).
                     .y(y)
                     .on('zoom', zooming)
                     .on('zoomend', zoomed);
+                scope.ctrl.zoom = zoom;
 
                 var tooltip = d3.select(element[0]).append('div')
                     .attr('class', 'd3tip hidden');
@@ -95,14 +102,14 @@ angular.module('angular-d3-hexbin', []).
                 //Create separate g to avoid zoom trigger on axis
                 var zoomPane = chart.append('g');
                 if (scope.canZoom) {
-                    zoomPane.call(zoom);
+                    zoomPane.call(scope.ctrl.zoom);
                 }
 
                 //Use svg to clip to support pan without redraw
-                var container = zoomPane.append('svg')
+                var clipPane = zoomPane.append('svg')
                     .attr('width', width)
                     .attr('height', height)
-                    .append('g');
+                var container = clipPane.append('g');
 
                 //Add rect so zoom can be activated in empty space
                 var pane = container.append('rect')
@@ -135,7 +142,7 @@ angular.module('angular-d3-hexbin', []).
                     .attr('y', -40)
                     .attr('transform', 'rotate(-90)');
 
-                scope.ctrl.redraw = function() {
+                scope.ctrl.redraw = function () {
                     //TODO: Efficient zoom (#2)
                     //store current zoom params
                     var trans = zoom.translate(), scale = zoom.scale();
@@ -143,7 +150,7 @@ angular.module('angular-d3-hexbin', []).
                     zoom.translate([0, 0]).scale(1);
 
                     //re-compute hexbin using scaled radius
-                    hexbin = hexbin.radius(scope.radius / scale);
+                    hexbin = hexbin.radius(scope.radius / 100 / scale * width);
                     var bins = hexbin(scope.data);
 
                     //set zoom back to previous status
@@ -173,7 +180,7 @@ angular.module('angular-d3-hexbin', []).
                     hexagon.enter().append('path')
                         .attr('class', 'hexagon');
 
-                    if(angular.isDefined(scope.tip)){
+                    if (angular.isDefined(scope.tip)) {
                         hexagon
                             .on('mousemove', function (d, i) {
                                 var mouse = d3.mouse(svg.node()).map(function (d) {
@@ -204,7 +211,7 @@ angular.module('angular-d3-hexbin', []).
                 };
 
                 scope.$watch('data', function () {
-                    if(scope.data.length){
+                    if (scope.data.length) {
                         x.domain(d3.extent(scope.data, scope.x));
                         y.domain(d3.extent(scope.data, scope.y));
                     }
@@ -220,19 +227,43 @@ angular.module('angular-d3-hexbin', []).
 
                 scope.$watch('radius', scope.ctrl.redraw);
 
-                scope.$watch('axisLabels', function(){
+                scope.$watch('axisLabels', function () {
                     xLab.text(scope.axisLabels[0]);
                     yLab.text(scope.axisLabels[1]);
                 });
 
-                scope.ctrl.resize = function(){
-                    //svg.attr("width", element.width());
-                    //svg.attr("height", element.width() / scope.aspectRatio);
+                scope.ctrl.resize = function () {
+                    rawWidth = element.width();
+                    rawHeight = rawWidth / scope.aspectRatio;
+                    width = rawWidth - margin.left - margin.right;
+                    height = rawHeight / scope.aspectRatio - margin.top - margin.bottom;
+
+                    svg.attr('width', rawWidth).attr('height', rawHeight);
+                    clipPane.attr('width', width).attr('height', height);
+
+                    hexbin = hexbin.size([width, height]);
+
+                    x.range([0, width]);
+                    y.range([height, 0]);
+
+                    xAxis.tickSize(6, -height);
+                    yAxis.tickSize(6, -width);
+
+                    svg.select('.x.axis').attr('transform', 'translate(0,' + height + ')').call(xAxis);
+                    svg.select('.y.axis').call(yAxis);
+
+                    xLab.attr('x', width / 2)
+                        .attr('y', height + 30);
+
+                    yLab.attr('x', -height / 2)
+                        .attr('y', -40);
+
+                    scope.ctrl.redraw();
                 };
 
-                scope.$watch('aspectRatio', scope.ctrl.resize );
+                scope.$watch('aspectRatio', scope.ctrl.resize);
 
-                element.bind('resize', scope.ctrl.resize);
+                angular.element($window).bind('resize', scope.ctrl.resize);
             }
         };
     }).
@@ -306,8 +337,8 @@ angular.module('angular-d3-hexbin', []).
                     stops.enter().append('stop');
 
                     stops.attr('offset', function (d) {
-                            return d.percent;
-                        })
+                        return d.percent;
+                    })
                         .attr('stop-color', function (d) {
                             return d.color;
                         });
