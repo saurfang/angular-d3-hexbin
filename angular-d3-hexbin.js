@@ -36,8 +36,9 @@ angular.module('angular-d3-hexbin', []).
                 element.addClass('ngD3Hexbin');
 
                 var margin = {top: 10, right: 20, bottom: 60, left: 50},
-                    width = element.width() - margin.left - margin.right,
-                    height = element.width() / scope.aspectRatio - margin.top - margin.bottom;
+                    rawWidth = element.width(), rawHeight = rawWidth / scope.aspectRatio,
+                    width = rawWidth - margin.left - margin.right,
+                    height = rawHeight / scope.aspectRatio - margin.top - margin.bottom;
 
                 var hexbin = d3.hexbin()
                     .x(function (d) {
@@ -85,12 +86,14 @@ angular.module('angular-d3-hexbin', []).
                     .attr('class', 'd3tip hidden');
 
                 var svg = d3.select(element[0]).append('svg')
-                    .attr('viewBox', "0 0 " + element.width() + " " + element.width() / scope.aspectRatio)
-                    .append('g')
+                    .attr('width', rawWidth)
+                    .attr('height', rawHeight);
+
+                var chart = svg.append('g')
                     .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
                 //Create separate g to avoid zoom trigger on axis
-                var zoomPane = svg.append('g');
+                var zoomPane = chart.append('g');
                 if (scope.canZoom) {
                     zoomPane.call(zoom);
                 }
@@ -104,28 +107,28 @@ angular.module('angular-d3-hexbin', []).
                 //Add rect so zoom can be activated in empty space
                 var pane = container.append('rect')
                     .attr('class', 'pane')
-                    .attr('width', width)
-                    .attr('height', height);
+                    .attr('width', '100%')
+                    .attr('height', '100%');
 
                 var hexagon = container
                     .selectAll('.hexagon');
 
-                svg.append('g')
+                chart.append('g')
                     .attr('class', 'y axis')
                     .call(yAxis);
 
-                svg.append('g')
+                chart.append('g')
                     .attr('class', 'x axis')
                     .attr('transform', 'translate(0,' + height + ')')
                     .call(xAxis);
 
-                var xLab = svg.append('text')
+                var xLab = chart.append('text')
                     .attr('class', 'x label')
                     .attr('text-anchor', 'middle')
                     .attr('x', width / 2)
                     .attr('y', height + 30);
 
-                var yLab = svg.append('text')
+                var yLab = chart.append('text')
                     .attr('class', 'y label')
                     .attr('text-anchor', 'middle')
                     .attr('x', -height / 2)
@@ -208,7 +211,7 @@ angular.module('angular-d3-hexbin', []).
                     zoom = zoom.x(x).y(y);
                     container.attr('transform', null);
 
-                    var t = svg.transition().duration(500);
+                    var t = chart.transition().duration(500);
                     t.select('.x.axis').call(xAxis);
                     t.select('.y.axis').call(yAxis);
 
@@ -223,8 +226,8 @@ angular.module('angular-d3-hexbin', []).
                 });
 
                 scope.ctrl.resize = function(){
-                    svg.attr("width", element.width());
-                    svg.attr("height", element.width() / scope.aspectRatio);
+                    //svg.attr("width", element.width());
+                    //svg.attr("height", element.width() / scope.aspectRatio);
                 };
 
                 scope.$watch('aspectRatio', scope.ctrl.resize );
