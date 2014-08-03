@@ -277,7 +277,7 @@ angular.module('angular-d3-hexbin', []).
     directive('ngD3Legend', ['$window', function ($window) {
         var margin = {top: 5, right: 20, bottom: 15, left: 5},
             rawHeight = 35, height = rawHeight - margin.top - margin.bottom,
-            numberHues = 100;
+            numberHues = 100, __uid = 0;
 
         return {
             restrict: 'E',
@@ -293,7 +293,7 @@ angular.module('angular-d3-hexbin', []).
 
                 var rawWidth = element.width(), width = rawWidth - margin.left - margin.right;
 
-                var idGradient = 'legendGradient';
+                var idGradient = 'legendGradient' + (__uid++);
 
                 var svg = d3.select(element[0]).append('svg')
                     .attr('width', '100%')
