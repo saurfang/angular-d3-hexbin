@@ -1,16 +1,16 @@
-.ngD3Hexbin .axis text {
+.ngD3Hexbin .axis text, .ngD3Legend .axis text {
   font: 10px sans-serif; }
-.ngD3Hexbin .axis path, .ngD3Hexbin .axis line {
+.ngD3Hexbin .axis path, .ngD3Hexbin .axis line, .ngD3Legend .axis path, .ngD3Legend .axis line {
   fill: none;
   stroke: #000; }
-.ngD3Hexbin .axis line {
+.ngD3Hexbin .axis line, .ngD3Legend .axis line {
   shape-rendering: crispEdges; }
-.ngD3Hexbin .hexagon {
+.ngD3Hexbin .hexagon, .ngD3Legend .hexagon {
   fill: none;
   stroke: #000; }
-.ngD3Hexbin .hidden {
+.ngD3Hexbin .hidden, .ngD3Legend .hidden {
   display: none; }
-.ngD3Hexbin div.d3tip {
+.ngD3Hexbin div.d3tip, .ngD3Legend div.d3tip {
   color: #222;
   background: #fff;
   padding: .5em;
@@ -19,7 +19,7 @@
   box-shadow: 0px 0px 2px 0px #a6a6a6;
   opacity: 0.9;
   position: absolute; }
-.ngD3Hexbin rect.pane {
+.ngD3Hexbin rect.pane, .ngD3Legend rect.pane {
   cursor: move;
   fill: none;
   pointer-events: all; }

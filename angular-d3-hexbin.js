@@ -1,5 +1,5 @@
 angular.module('angular-d3-hexbin', []).
-    directive('ngD3Hexbin', function ($window) {
+    directive('ngD3Hexbin', ['$window', function ($window) {
         return {
             restrict: 'E',
             scope: {
@@ -266,27 +266,34 @@ angular.module('angular-d3-hexbin', []).
                 angular.element($window).bind('resize', scope.ctrl.resize);
             }
         };
-    }).
+    }]).
 
     // Making a Heat Map Legend with D3
     // Source: http://bl.ocks.org/nowherenearithaca/4449376
-    directive('ngD3Legend', function () {
+    directive('ngD3Legend', ['$window', function ($window) {
         var margin = {top: 5, right: 20, bottom: 15, left: 5},
-            height = 35, numberHues = 100;
+            rawHeight = 35, height = rawHeight - margin.top - margin.bottom,
+            numberHues = 100;
 
         return {
             restrict: 'E',
             scope: {
-                color: '='
+                color: '=',
+                ticks: '=?'
+            },
+            controller: function($scope) {
+              $scope.ticks = Math.abs($scope.ticks) || 2;
             },
             link: function (scope, element, attrs) {
-                var width = element.width();
+                element.addClass('ngD3Legend');
+
+                var rawWidth = element.width(), width = rawWidth - margin.left - margin.right;
 
                 var idGradient = 'legendGradient';
 
                 var svg = d3.select(element[0]).append('svg')
                     .attr('width', '100%')
-                    .attr('height', height);
+                    .attr('height', rawHeight);
 
                 //create the empty gradient that we're going to populate later
                 svg.append('g')
@@ -298,37 +305,50 @@ angular.module('angular-d3-hexbin', []).
                     .attr('y1', '0%')
                     .attr('y2', '0%');
 
-                svg.append('rect')
+                var rect = svg.append('rect')
                     .attr('fill', 'url(#' + idGradient + ')')
                     .attr('x', margin.left)
                     .attr('y', margin.top)
-                    .attr('width', width - margin.left - margin.right)
-                    .attr('height', height - margin.top - margin.bottom)
+                    .attr('width', width)
+                    .attr('height', height)
                     .style('stroke', 'black')
                     .style('stroke-width', '0.5px');
 
-                //add text on either side of the bar
-                svg.append('text')
-                    .attr('class', 'legendText')
-                    .attr('text-anchor', 'middle')
-                    .attr('x', margin.left)
-                    .attr('y', height)
-                    .text('0');
+                var x = d3.scale.linear()
+                    .range([0, width]);
 
-                var maxHue = svg.append('text')
-                    .attr('class', 'legendText')
-                    .attr('text-anchor', 'middle')
-                    .attr('x', width - margin.right)
-                    .attr('y', height);
+                var xAxis = d3.svg.axis()
+                    .scale(x)
+                    .orient('bottom')
+                    .ticks(1)
+                    .tickSize(2, -height);
+
+                svg.append('g')
+                    .attr('class', 'x axis')
+                    .attr('transform', 'translate(' + margin.left + ',' + (height + margin.top) + ')')
+                    .call(xAxis);
+
+                var drawAxis = function (){
+                    svg.select('.x.axis').call(xAxis);
+                };
+
+                var resize = function () {
+                    rawWidth = element.width()
+                    width = rawWidth - margin.left - margin.right;
+                    rect.attr('width', width);
+                    x.range([0, width]);
+                    drawAxis();
+                };
+                resize();
 
                 //TODO: $watch doesn't really work on color currently
                 scope.$watch('color', function () {
-                    var upper = d3.max(scope.color.domain());
+                    var extent = d3.extent(scope.color.domain());
                     var stops = d3.select('#' + idGradient).selectAll('stop')
                         .data(d3.range(numberHues).map(function (i) {
                             return {
                                 percent: i / numberHues,
-                                color: scope.color(i / numberHues * upper)
+                                color: scope.color(extent[0] + i / numberHues * (extent[1] - extent[0]))
                             };
                         }));
 
@@ -344,10 +364,21 @@ angular.module('angular-d3-hexbin', []).
                         });
                 }, true);
 
-                scope.$watch('color.domain()', function () {
-                    var upper = d3.max(scope.color.domain());
-                    maxHue.text(upper);
+                scope.$watch('color.domain()', function (value) {
+                    x.domain(d3.extent(value));
+                    calcTick();
                 });
+
+                var calcTick = function () {
+                    var domain = x.domain(),
+                        min = domain[0], max = domain[1],
+                        step = (max - min) / scope.ticks;
+                    xAxis.tickValues(d3.range(min, max + step, step));
+                    drawAxis();
+                };
+                scope.$watch('ticks', calcTick);
+
+                angular.element($window).bind('resize', resize);
             }
         };
-    });
+    }]);
