@@ -9,6 +9,7 @@ angular.module('angular-d3-hexbin', []).
                 weight: '=?',
                 radius: '=?',
                 axisLabels: '=?',
+                axisFormats: '=?',
                 canZoom: '=?',
                 strokeWidth: '=?',
                 aspectRatio: '=?',
@@ -36,6 +37,7 @@ angular.module('angular-d3-hexbin', []).
                     return d.length;
                 };
                 $scope.axisLabels = $scope.axisLabels || ['', ''];
+                $scope.axisFormats = $scope.axisFormats || [null, null];
                 $scope.ctrl = $scope.ctrl || {};
             },
             link: function (scope, element, attrs) {
@@ -65,11 +67,13 @@ angular.module('angular-d3-hexbin', []).
                 var xAxis = d3.svg.axis()
                     .scale(x)
                     .orient('bottom')
+                    .tickFormat(scope.axisFormats[0])
                     .tickSize(6, -height);
 
                 var yAxis = d3.svg.axis()
                     .scale(y)
                     .orient('left')
+                    .tickFormat(scope.axisFormats[1])
                     .tickSize(6, -width);
 
                 var zooming = function () {
