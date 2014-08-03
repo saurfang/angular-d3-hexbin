@@ -321,7 +321,7 @@ angular.module('angular-d3-hexbin', []).
                     .scale(x)
                     .orient('bottom')
                     .ticks(1)
-                    .tickSize(2, -height);
+                    .tickSize(-4, -height);
 
                 svg.append('g')
                     .attr('class', 'x axis')
