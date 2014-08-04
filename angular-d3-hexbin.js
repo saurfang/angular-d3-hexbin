@@ -8,6 +8,7 @@ angular.module('angular-d3-hexbin', []).
                 y: '=?',
                 weight: '=?',
                 radius: '=?',
+                minRadius: '=?',
                 axisLabels: '=?',
                 axisFormats: '=?',
                 canZoom: '=?',
@@ -18,26 +19,28 @@ angular.module('angular-d3-hexbin', []).
                 ctrl: '=?'
             },
             controller: function ($scope) {
-                $scope.x = $scope.x || function (d) {
-                    return d[0];
-                };
-                $scope.y = $scope.y || function (d) {
-                    return d[1];
-                };
+                $scope.x = $scope.x || function (d) { return d[0]; };
+                $scope.y = $scope.y || function (d) { return d[1]; };
+                $scope.weight = $scope.weight || function (d) { return d.length; };
+
                 $scope.radius = Math.abs($scope.radius) || 3;
+                var minRadius = angular.isDefined($scope.minRadius) ? Math.abs($scope.minRadius) : $scope.radius;
+                $scope.minRadius = Math.min($scope.radius, minRadius) || -Infinity;
+
                 $scope.canZoom = angular.isDefined($scope.canZoom) ? $scope.canZoom : true;
                 $scope.strokeWidth = angular.isDefined($scope.strokeWidth) ? Math.abs($scope.strokeWidth) : 0;
                 $scope.aspectRatio = Math.abs($scope.aspectRatio) || 1;
+
                 $scope.color = $scope.color ||
                     d3.scale.linear()
                         .domain([0, 20])
                         .range(['white', 'steelblue'])
                         .interpolate(d3.interpolateLab);
-                $scope.weight = $scope.weight || function (d) {
-                    return d.length;
-                };
+
+
                 $scope.axisLabels = $scope.axisLabels || ['', ''];
                 $scope.axisFormats = $scope.axisFormats || [null, null];
+
                 $scope.ctrl = $scope.ctrl || {};
             },
             link: function (scope, element, attrs) {
@@ -154,7 +157,7 @@ angular.module('angular-d3-hexbin', []).
                     zoom.translate([0, 0]).scale(1);
 
                     //re-compute hexbin using scaled radius
-                    hexbin = hexbin.radius(scope.radius / 100 / scale * width);
+                    hexbin = hexbin.radius(Math.max(scope.minRadius, scope.radius) / 100 / scale * width);
                     var bins = hexbin(scope.data);
 
                     //set zoom back to previous status
