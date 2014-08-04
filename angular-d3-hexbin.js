@@ -18,7 +18,7 @@ angular.module('angular-d3-hexbin', []).
                 tip: '=?',
                 ctrl: '=?'
             },
-            controller: function ($scope) {
+            controller: ['$scope', function ($scope) {
                 $scope.x = $scope.x || function (d) { return d[0]; };
                 $scope.y = $scope.y || function (d) { return d[1]; };
                 $scope.weight = $scope.weight || function (d) { return d.length; };
@@ -42,7 +42,7 @@ angular.module('angular-d3-hexbin', []).
                 $scope.axisFormats = $scope.axisFormats || [null, null];
 
                 $scope.ctrl = $scope.ctrl || {};
-            },
+            }],
             link: function (scope, element, attrs) {
                 element.addClass('ngD3Hexbin');
 
@@ -288,9 +288,9 @@ angular.module('angular-d3-hexbin', []).
                 color: '=',
                 ticks: '=?'
             },
-            controller: function($scope) {
+            controller: ['$scope', function($scope) {
               $scope.ticks = Math.abs($scope.ticks) || 2;
-            },
+            }],
             link: function (scope, element, attrs) {
                 element.addClass('ngD3Legend');
 
