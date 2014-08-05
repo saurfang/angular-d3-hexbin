@@ -12,6 +12,7 @@ angular.module('angular-d3-hexbin', []).
                 axisLabels: '=?',
                 axisFormats: '=?',
                 canZoom: '=?',
+                scaleExtent: '=?',
                 strokeWidth: '=?',
                 aspectRatio: '=?',
                 color: '=?',
@@ -34,6 +35,7 @@ angular.module('angular-d3-hexbin', []).
                 $scope.minRadius = Math.min($scope.radius, minRadius) || -Infinity;
 
                 $scope.canZoom = angular.isDefined($scope.canZoom) ? $scope.canZoom : true;
+                $scope.scaleExtent = $scope.scaleExtent || [0, Infinity];
                 $scope.strokeWidth = angular.isDefined($scope.strokeWidth) ? Math.abs($scope.strokeWidth) : 0;
                 $scope.aspectRatio = Math.abs($scope.aspectRatio) || 1;
 
@@ -96,6 +98,7 @@ angular.module('angular-d3-hexbin', []).
                 };
 
                 var zoom = d3.behavior.zoom()
+                    .scaleExtent(scope.scaleExtent)
                     .x(x)
                     .y(y)
                     .on('zoom', zooming)
