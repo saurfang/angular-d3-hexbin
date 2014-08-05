@@ -24,7 +24,7 @@ angular.module('angular-d3-hexbin', []).
                 $scope.weight = $scope.weight || function (d) { return d.length; };
 
                 $scope.radius = Math.abs($scope.radius) || 3;
-                var minRadius = angular.isDefined($scope.minRadius) ? Math.abs($scope.minRadius) : $scope.radius;
+                var minRadius = angular.isDefined($scope.minRadius) ? Math.abs($scope.minRadius) : -Infinity;
                 $scope.minRadius = Math.min($scope.radius, minRadius) || -Infinity;
 
                 $scope.canZoom = angular.isDefined($scope.canZoom) ? $scope.canZoom : true;
@@ -157,7 +157,7 @@ angular.module('angular-d3-hexbin', []).
                     zoom.translate([0, 0]).scale(1);
 
                     //re-compute hexbin using scaled radius
-                    hexbin = hexbin.radius(Math.max(scope.minRadius, scope.radius) / 100 / scale * width);
+                    hexbin = hexbin.radius(Math.max(scope.minRadius, scope.radius / scale) / 100 * width);
                     var bins = hexbin(scope.data);
 
                     //set zoom back to previous status
