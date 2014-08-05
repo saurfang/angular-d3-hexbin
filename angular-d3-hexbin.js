@@ -19,9 +19,15 @@ angular.module('angular-d3-hexbin', []).
                 ctrl: '=?'
             },
             controller: ['$scope', function ($scope) {
-                $scope.x = $scope.x || function (d) { return d[0]; };
-                $scope.y = $scope.y || function (d) { return d[1]; };
-                $scope.weight = $scope.weight || function (d) { return d.length; };
+                $scope.x = $scope.x || function (d) {
+                    return d[0];
+                };
+                $scope.y = $scope.y || function (d) {
+                    return d[1];
+                };
+                $scope.weight = $scope.weight || function (d) {
+                    return d.length;
+                };
 
                 $scope.radius = Math.abs($scope.radius) || 3;
                 var minRadius = angular.isDefined($scope.minRadius) ? Math.abs($scope.minRadius) : -Infinity;
@@ -278,23 +284,27 @@ angular.module('angular-d3-hexbin', []).
     // Making a Heat Map Legend with D3
     // Source: http://bl.ocks.org/nowherenearithaca/4449376
     directive('ngD3Legend', ['$window', function ($window) {
-        var margin = {top: 5, right: 20, bottom: 15, left: 5},
-            rawHeight = 35, height = rawHeight - margin.top - margin.bottom,
-            numberHues = 100, __uid = 0;
+        var numberHues = 100, __uid = 0;
 
         return {
             restrict: 'E',
             scope: {
                 color: '=',
-                ticks: '=?'
+                ticks: '=?',
+                height: '=?',
+                margin: '=?'
             },
-            controller: ['$scope', function($scope) {
-              $scope.ticks = Math.abs($scope.ticks) || 2;
+            controller: ['$scope', function ($scope) {
+                $scope.ticks = Math.abs($scope.ticks) || 2;
+                $scope.margin = $scope.margin || {top: 5, right: 20, bottom: 15, left: 5},
+                $scope.height = Math.abs($scope.height) || 35;
             }],
             link: function (scope, element, attrs) {
                 element.addClass('ngD3Legend');
 
-                var rawWidth = element.width(), width = rawWidth - margin.left - margin.right;
+                var margin = scope.margin,
+                    rawHeight = scope.height, height = rawHeight - margin.top - margin.bottom,
+                    rawWidth = element.width(), width = rawWidth - margin.left - margin.right;
 
                 var idGradient = 'legendGradient' + (__uid++);
 
@@ -335,7 +345,7 @@ angular.module('angular-d3-hexbin', []).
                     .attr('transform', 'translate(' + margin.left + ',' + (height + margin.top) + ')')
                     .call(xAxis);
 
-                var drawAxis = function (){
+                var drawAxis = function () {
                     svg.select('.x.axis').call(xAxis);
                 };
 
