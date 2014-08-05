@@ -292,12 +292,14 @@ angular.module('angular-d3-hexbin', []).
                 color: '=',
                 ticks: '=?',
                 height: '=?',
-                margin: '=?'
+                margin: '=?',
+                formatter: '=?'
             },
             controller: ['$scope', function ($scope) {
                 $scope.ticks = Math.abs($scope.ticks) || 2;
                 $scope.margin = $scope.margin || {top: 5, right: 20, bottom: 15, left: 5},
                 $scope.height = Math.abs($scope.height) || 35;
+                $scope.formatter = $scope.formatter || null;
             }],
             link: function (scope, element, attrs) {
                 element.addClass('ngD3Legend');
@@ -338,7 +340,8 @@ angular.module('angular-d3-hexbin', []).
                     .scale(x)
                     .orient('bottom')
                     .ticks(1)
-                    .tickSize(-4, -height);
+                    .tickSize(-4, -height)
+                    .tickFormat(scope.formatter);
 
                 svg.append('g')
                     .attr('class', 'x axis')
