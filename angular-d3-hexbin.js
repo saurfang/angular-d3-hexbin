@@ -35,7 +35,7 @@ angular.module('angular-d3-hexbin', []).
                 $scope.minRadius = Math.min($scope.radius, minRadius) || -Infinity;
 
                 $scope.canZoom = angular.isDefined($scope.canZoom) ? $scope.canZoom : true;
-                $scope.scaleExtent = $scope.scaleExtent || [0, Infinity];
+                $scope.scaleExtent = $scope.scaleExtent || [1, Infinity];
                 $scope.strokeWidth = angular.isDefined($scope.strokeWidth) ? Math.abs($scope.strokeWidth) : 0;
                 $scope.aspectRatio = Math.abs($scope.aspectRatio) || 1;
 
