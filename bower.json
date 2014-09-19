@@ -1,6 +1,6 @@
 {
   "name": "angular-d3-hexbin",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Angular hexbin plot directive using d3",
   "main": ["angular-d3-hexbin.js", "angular-d3-hexbin.css"],
   "keywords": [
